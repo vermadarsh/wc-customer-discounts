@@ -22,82 +22,128 @@
  */
 class Wc_Customer_Discounts_Admin {
 
-	/**
-	 * The ID of this plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @var      string    $plugin_name    The ID of this plugin.
-	 */
-	private $plugin_name;
+    /**
+     * The ID of this plugin.
+     *
+     * @since    1.0.0
+     * @access   private
+     * @var      string $plugin_name The ID of this plugin.
+     */
+    private $plugin_name;
 
-	/**
-	 * The version of this plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @var      string    $version    The current version of this plugin.
-	 */
-	private $version;
+    /**
+     * The version of this plugin.
+     *
+     * @since    1.0.0
+     * @access   private
+     * @var      string $version The current version of this plugin.
+     */
+    private $version;
 
-	/**
-	 * Initialize the class and set its properties.
-	 *
-	 * @since    1.0.0
-	 * @param      string    $plugin_name       The name of this plugin.
-	 * @param      string    $version    The version of this plugin.
-	 */
-	public function __construct( $plugin_name, $version ) {
+    /**
+     * Initialize the class and set its properties.
+     *
+     * @param string $plugin_name The name of this plugin.
+     * @param string $version The version of this plugin.
+     * @since    1.0.0
+     */
+    public function __construct($plugin_name, $version) {
 
-		$this->plugin_name = $plugin_name;
-		$this->version = $version;
+        $this->plugin_name = $plugin_name;
+        $this->version = $version;
 
-	}
+    }
 
-	/**
-	 * Register the stylesheets for the admin area.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_styles() {
+    /**
+     * Register the stylesheets for the admin area.
+     *
+     * @since    1.0.0
+     */
+    function wccd_enqueue_styles() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Wc_Customer_Discounts_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Wc_Customer_Discounts_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+        wp_enqueue_style($this->plugin_name, WCCD_PLUGIN_URL . 'admin/css/wc-customer-discounts-admin.css', array(), $this->version, 'all');
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wc-customer-discounts-admin.css', array(), $this->version, 'all' );
+    }
 
-	}
+    /**
+     * Register the JavaScript for the admin area.
+     *
+     * @since    1.0.0
+     */
+    function wccd_enqueue_scripts() {
 
-	/**
-	 * Register the JavaScript for the admin area.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_scripts() {
+        wp_enqueue_script($this->plugin_name, WCCD_PLUGIN_URL . 'admin/js/wc-customer-discounts-admin.js', array('jquery'), $this->version, true);
+        wp_localize_script(
+            $this->plugin_name,
+            'WCCD_Admin_JS_Obj',
+            array(
+                'ajaxurl' => admin_url('admin-ajax.php'),
+                'loader_url' => includes_url('images/spinner-2x.gif'),
+            )
+        );
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Wc_Customer_Discounts_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Wc_Customer_Discounts_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+    }
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wc-customer-discounts-admin.js', array( 'jquery' ), $this->version, false );
+    /**
+     * Adds a submenu to the WC menu item to show the admin settings.
+     *
+     * @since    1.0.0
+     */
+    function wccd_admin_menu_items() {
 
-	}
+        add_submenu_page(
+            'woocommerce',
+            esc_html__('Customer Discounts', 'wc-customer-discounts'),
+            esc_html__('Customer Discounts', 'wc-customer-discounts'),
+            'manage_options',
+            'wccd-customer-discounts',
+            array($this, 'wccd_customer_discounts_callback')
+        );
+
+    }
+
+    /**
+     * Holds the template for admin settings.
+     *
+     * @since    1.0.0
+     */
+    function wccd_customer_discounts_callback() {
+
+        $file = WCCD_PLUGIN_PATH . 'admin/partials/wccd-admin-settings.php';
+        if (file_exists($file)) {
+            include_once $file;
+        }
+
+    }
+
+    /**
+     * Function defined to load the admin settings.
+     *
+     * @since    1.0.0
+     */
+    function wccd_load_admin_discount_details() {
+
+        $action = filter_input( INPUT_POST, 'action', FILTER_SANITIZE_STRING );
+        if( isset( $action ) && 'wccd_load_admin_discount_details' === $action ) {
+            $discount_type = filter_input( INPUT_POST, 'discount_type', FILTER_SANITIZE_STRING );
+
+            if( 'global-discount' === $discount_type ) {
+                $settings_html = wccd_get_global_discounts_settings_html();
+            } elseif( 'user-role-discount' === $discount_type ) {
+                $settings_html = wccd_get_user_role_discounts_settings_html();
+            } elseif( 'user-specific-discount' === $discount_type ) {
+                $settings_html = wccd_get_user_specific_discounts_settings_html();
+            }
+
+            wp_send_json_success(
+                array(
+                    'message' => 'wccd-discount-settings-html-returned',
+                    'html' => $settings_html
+                )
+            );
+            wp_die();
+        }
+
+    }
 
 }

@@ -1,32 +1,43 @@
-(function( $ ) {
-	'use strict';
+jQuery(document).ready(function ($) {
+    'use strict';
 
-	/**
-	 * All of the code for your admin-facing JavaScript source
-	 * should reside in this file.
-	 *
-	 * Note: It has been assumed you will write jQuery code here, so the
-	 * $ function reference has been prepared for usage within the scope
-	 * of this function.
-	 *
-	 * This enables you to define handlers, for when the DOM is ready:
-	 *
-	 * $(function() {
-	 *
-	 * });
-	 *
-	 * When the window is loaded:
-	 *
-	 * $( window ).load(function() {
-	 *
-	 * });
-	 *
-	 * ...and/or other possibilities.
-	 *
-	 * Ideally, it is not considered best practise to attach more than a
-	 * single DOM-ready or window-load handler for a particular page.
-	 * Although scripts in the WordPress core, Plugins and Themes may be
-	 * practising this, we should strive to set a better example in our own work.
-	 */
+    var wccd_fields = {
+        /**
+         * Initialization Custom My Account Tab Js.
+         */
+        init: function () {
+            $(document.body).on('change', '.wccd-discounts-type select', this.wccdLoadAdminDiscountDetails);
+            $(window).on('load', this.wccdLoadAdminDiscountDetails);
+        },
 
-})( jQuery );
+        /**
+         * Plugin Menu Accordion Toggle.
+         * @param event
+         */
+        wccdLoadAdminDiscountDetails: function (event) {
+            event.preventDefault();
+            var discount_type = $('.wccd-discounts-type select').val();
+            var curr_url = window.location.href;
+            if (-1 !== curr_url.indexOf('wccd-customer-discounts')) {
+                var data = {
+                    'action': 'wccd_load_admin_discount_details',
+                    'discount_type': discount_type
+                };
+                $.ajax({
+                    dataType: 'JSON',
+                    url: WCCD_Admin_JS_Obj.ajaxurl,
+                    type: 'POST',
+                    data: data,
+                    success: function (response) {
+                        if ('wccd-discount-settings-html-returned' === response.data.message) {
+                            $('.wccd-discount-settings .wccd-content-loader').remove();
+                            $('.wccd-discount-settings').html(response.data.html);
+                        }
+                    },
+                });
+            }
+        },
+    };
+    wccd_fields.init();
+
+});

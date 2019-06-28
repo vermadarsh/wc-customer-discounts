@@ -67,8 +67,8 @@ class Wc_Customer_Discounts {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		if ( defined( 'WC_CUSTOMER_DISCOUNTS_VERSION' ) ) {
-			$this->version = WC_CUSTOMER_DISCOUNTS_VERSION;
+		if ( defined( 'WCCD_PLUGIN_VERSION' ) ) {
+			$this->version = WCCD_PLUGIN_VERSION;
 		} else {
 			$this->version = '1.0.0';
 		}
@@ -103,24 +103,36 @@ class Wc_Customer_Discounts {
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wc-customer-discounts-loader.php';
+		require_once WCCD_PLUGIN_PATH . 'includes/class-wc-customer-discounts-loader.php';
 
 		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wc-customer-discounts-i18n.php';
+		require_once WCCD_PLUGIN_PATH . 'includes/class-wc-customer-discounts-i18n.php';
+
+        /**
+         * The class responsible for defining all admin static functions
+         * side of the site.
+         */
+        require_once WCCD_PLUGIN_PATH . 'admin/wc-customer-discounts-admin-functions.php';
+
+        /**
+         * The class responsible for defining all admin static functions
+         * side of the site.
+         */
+        /*require_once WCCD_PLUGIN_PATH . 'includes/configure-quote-public-functions.php';*/
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wc-customer-discounts-admin.php';
+		require_once WCCD_PLUGIN_PATH . 'admin/class-wc-customer-discounts-admin.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-wc-customer-discounts-public.php';
+		require_once WCCD_PLUGIN_PATH . 'public/class-wc-customer-discounts-public.php';
 
 		$this->loader = new Wc_Customer_Discounts_Loader();
 
@@ -154,8 +166,10 @@ class Wc_Customer_Discounts {
 
 		$plugin_admin = new Wc_Customer_Discounts_Admin( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'wccd_enqueue_styles' );
+		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'wccd_enqueue_scripts' );
+		$this->loader->add_action( 'admin_menu', $plugin_admin, 'wccd_admin_menu_items' );
+		$this->loader->add_action( 'wp_ajax_wccd_load_admin_discount_details', $plugin_admin, 'wccd_load_admin_discount_details' );
 
 	}
 
@@ -170,8 +184,8 @@ class Wc_Customer_Discounts {
 
 		$plugin_public = new Wc_Customer_Discounts_Public( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'wccd_enqueue_styles' );
+		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'wccd_enqueue_scripts' );
 
 	}
 
